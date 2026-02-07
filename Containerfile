@@ -15,9 +15,12 @@ ENV \
   LC_ALL=C.UTF-8 \
   TZ=UTC
 
+# Use bash shell to support pipefail
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # ---- patch + minimal deps you actually want in a base ----
 # Keep this list tiny. Many teams only need ca-certificates + tzdata.
-RUN set -euxo pipefail; \
+RUN set -eux; \
     dnf -y update; \
     dnf -y install \
       ca-certificates \
@@ -29,7 +32,7 @@ RUN set -euxo pipefail; \
 
 # ---- copy and execute STIG hardening scripts ----
 COPY scripts/ /tmp/stig-scripts/
-RUN set -euxo pipefail; \
+RUN set -eux; \
     chmod +x /tmp/stig-scripts/*.sh; \
     /tmp/stig-scripts/apply-all-stig.sh; \
     rm -rf /tmp/stig-scripts
@@ -43,7 +46,7 @@ ARG APP_GID=0
 ARG APP_USER=appuser
 ARG APP_HOME=/app
 
-RUN set -euxo pipefail; \
+RUN set -eux; \
     mkdir -p "${APP_HOME}"; \
     # Create user with nologin; if group 0 exists (it will), use it.
     useradd \

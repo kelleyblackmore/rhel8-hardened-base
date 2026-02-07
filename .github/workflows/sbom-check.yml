@@ -24,8 +24,8 @@ jobs:
         run: |
           # Install Syft
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
-          # Install CycloneDX CLI for comparison
-          npm install -g @cyclonedx/cyclonedx-cli
+          # Install CycloneDX CLI using correct package name
+          npm install -g @cyclonedx/cli
           # Generate SBOM in CycloneDX format with versioned filename
           syft . -o cyclonedx-json > sbom-${COMMIT_SHA}-${BUILD_DATE}.json
           # Also create a current version for easy comparison
@@ -42,19 +42,19 @@ jobs:
       - name: Compare SBOMs with CycloneDX CLI
         run: |
           if [ -f "sbom-current.json" ]; then
-            echo " New SBOM generated: sbom-${COMMIT_SHA}-${BUILD_DATE}.json"
+            echo "New SBOM generated: sbom-${COMMIT_SHA}-${BUILD_DATE}.json"
             if [ -f "previous/sbom-current.json" ]; then
-              echo " Comparing with previous SBOM using CycloneDX CLI..."
+              echo "Comparing with previous SBOM using CycloneDX CLI..."
               
-              # Use cyclonedx-cli to compare SBOMs
-              if cyclonedx-cli diff --input-file previous/sbom-current.json --input-file sbom-current.json --output-format text > sbom-diff-${COMMIT_SHA}-${BUILD_DATE}.txt 2>&1; then
+              # Use cyclonedx diff command to compare SBOMs
+              if cyclonedx diff --from-file previous/sbom-current.json --to-file sbom-current.json --output-format text > sbom-diff-${COMMIT_SHA}-${BUILD_DATE}.txt 2>&1; then
                 if [ -s "sbom-diff-${COMMIT_SHA}-${BUILD_DATE}.txt" ]; then
-                  echo "  SBOM changes detected!"
-                  echo " Diff saved to: sbom-diff-${COMMIT_SHA}-${BUILD_DATE}.txt"
+                  echo "SBOM changes detected!"
+                  echo "Diff saved to: sbom-diff-${COMMIT_SHA}-${BUILD_DATE}.txt"
                   echo "--- Summary of changes ---"
                   head -20 sbom-diff-${COMMIT_SHA}-${BUILD_DATE}.txt
                 else
-                  echo " SBOMs are identical - no dependency changes detected."
+                  echo "SBOMs are identical - no dependency changes detected."
                   echo "No changes detected" > sbom-diff-${COMMIT_SHA}-${BUILD_DATE}.txt
                 fi
               else
