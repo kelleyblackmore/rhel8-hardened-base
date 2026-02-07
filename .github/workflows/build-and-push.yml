@@ -3,13 +3,10 @@ name: Build and Push Container Image
 on:
   push:
     branches:
-      - main
+      - main  # Only run on main branch pushes
     tags:
       - 'v*'
-  pull_request:
-    branches:
-      - main
-  workflow_dispatch:
+  workflow_dispatch:  # Allow manual triggering
 
 env:
   REGISTRY: ghcr.io
@@ -93,6 +90,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Containerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

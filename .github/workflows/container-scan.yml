@@ -3,10 +3,10 @@ name: Container Security Scan
 on:
   push:
     branches:
-      - main
+      - '**'  # Run on all branches
   pull_request:
     branches:
-      - main
+      - '**'  # Run on PRs to any branch
   schedule:
     # Run daily at 2 AM UTC for regular security checks
     - cron: '0 2 * * *'
@@ -60,6 +60,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Containerfile
           load: true  # Load image locally for scanning
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:scan-${{ github.sha }}
@@ -74,8 +75,9 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        continue-on-error: true
+        if: always() && github.event_name != 'pull_request'
         with:
           sarif_file: 'trivy-results.sarif'
 
@@ -114,7 +116,7 @@ jobs:
 
       - name: Upload Trivy scan reports
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && github.event_name != 'pull_request'
         with:
           name: trivy-scan-results-report
           path: |
@@ -143,6 +145,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          file: ./Containerfile
           load: true  # Load image locally for scanning
           tags: |
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:scan-${{ github.sha }}
@@ -157,8 +160,9 @@ jobs:
           output: 'trivy-results.sarif'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        continue-on-error: true
+        if: always() && github.event_name != 'pull_request'
         with:
           sarif_file: 'trivy-results.sarif'
 
@@ -208,7 +212,7 @@ jobs:
 
       - name: Upload Trivy scan reports
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && github.event_name != 'pull_request'
         with:
           name: trivy-scan-results-enforce
           path: |
@@ -233,8 +237,9 @@ jobs:
           output: 'trivy-fs-results.sarif'
 
       - name: Upload filesystem scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+        uses: github/codeql-action/upload-sarif@v4
+        continue-on-error: true
+        if: always() && github.event_name != 'pull_request'
         with:
           sarif_file: 'trivy-fs-results.sarif'
 
@@ -248,7 +253,7 @@ jobs:
 
       - name: Upload filesystem scan reports
         uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && github.event_name != 'pull_request'
         with:
           name: trivy-filesystem-results
           path: |
