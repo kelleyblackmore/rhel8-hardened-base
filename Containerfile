@@ -21,10 +21,18 @@ RUN set -euxo pipefail; \
     dnf -y update; \
     dnf -y install \
       ca-certificates \
-      tzdata; \
+      tzdata \
+      jq; \
     dnf -y clean all; \
     rm -rf /var/cache/dnf /var/cache/yum; \
     rm -rf /tmp/* /var/tmp/*
+
+# ---- copy and execute STIG hardening scripts ----
+COPY scripts/ /tmp/stig-scripts/
+RUN set -euxo pipefail; \
+    chmod +x /tmp/stig-scripts/*.sh; \
+    /tmp/stig-scripts/apply-all-stig.sh; \
+    rm -rf /tmp/stig-scripts
 
 # ---- create a non-root user (OpenShift-friendly) ----
 # Notes:
