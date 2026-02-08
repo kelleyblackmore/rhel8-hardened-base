@@ -1,0 +1,19 @@
+FROM localhost/rhel8-hardened:latest
+
+# Switch to root temporarily to install packages (this is acceptable for build time)
+USER root
+
+# Install Python 3 (may already be installed, but ensure it's available)
+RUN /bin/bash -c 'dnf install -y python3 && dnf clean all'
+
+# Copy test script and make it executable
+COPY test_hello.py /opt/test_hello.py
+RUN chmod +x /opt/test_hello.py
+
+# Switch back to the non-root appuser (STIG compliance)
+USER appuser
+
+# Set the working directory to app home
+WORKDIR /app
+
+CMD ["python3", "/opt/test_hello.py"]
