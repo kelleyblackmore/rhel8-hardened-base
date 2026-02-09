@@ -7,7 +7,6 @@ import os
 import sys
 import subprocess
 import pwd
-import grp
 
 def test_user_security():
     """Test that we're running as non-root user"""
