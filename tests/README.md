@@ -64,7 +64,7 @@ Testing installed packages...
 
 Testing file permissions...
   PASS: /etc/passwd has correct permissions (644)
-  PASS: /app exists and accessible
+  PASS: /app exists and is accessible
 
 Test Results: 4/4 tests passed
 All tests passed! Base image is working correctly.
