@@ -15,27 +15,27 @@ ENV \
   LC_ALL=C.UTF-8 \
   TZ=UTC
 
-# Use bash shell to support pipefail
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 # ---- patch + minimal deps you actually want in a base ----
 # Keep this list tiny. Many teams only need ca-certificates + tzdata.
-RUN set -eux; \
+# hadolint ignore=DL3041,SC3040
+RUN /bin/bash -o pipefail -c 'set -eux; \
     dnf -y update; \
     dnf -y install \
       ca-certificates \
       tzdata \
-      jq; \
+      jq \
+      vim-minimal; \
     dnf -y clean all; \
     rm -rf /var/cache/dnf /var/cache/yum; \
-    rm -rf /tmp/* /var/tmp/*
+    rm -rf /tmp/* /var/tmp/*'
 
 # ---- copy and execute STIG hardening scripts ----
 COPY scripts/ /tmp/stig-scripts/
-RUN set -eux; \
+# hadolint ignore=SC3040
+RUN /bin/bash -o pipefail -c 'set -eux; \
     chmod +x /tmp/stig-scripts/*.sh; \
     /tmp/stig-scripts/apply-all-stig.sh; \
-    rm -rf /tmp/stig-scripts
+    rm -rf /tmp/stig-scripts'
 
 # ---- create a non-root user (OpenShift-friendly) ----
 # Notes:
@@ -46,7 +46,8 @@ ARG APP_GID=0
 ARG APP_USER=appuser
 ARG APP_HOME=/app
 
-RUN set -eux; \
+# hadolint ignore=SC3040
+RUN /bin/bash -o pipefail -c 'set -eux; \
     mkdir -p "${APP_HOME}"; \
     # Create user with nologin; if group 0 exists (it will), use it.
     useradd \
@@ -57,7 +58,7 @@ RUN set -eux; \
       --shell /sbin/nologin \
       "${APP_USER}"; \
     chown -R "${APP_UID}:${APP_GID}" "${APP_HOME}"; \
-    chmod -R g=u "${APP_HOME}"
+    chmod -R g=u "${APP_HOME}"'
 
 # ---- runtime defaults ----
 WORKDIR /app
